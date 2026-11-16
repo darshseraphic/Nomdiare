@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#F1F1F1" />
+  <meta name="description" content="Nomdiare counts every image you paste." />
+  <title>Nomdiare — Image Counter</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='5' y='5' width='54' height='54' rx='15' fill='%23111111'/%3E%3Cpath d='M20 42V22h6v3c2-2.5 4.5-3.8 8-3.8 6.2 0 10 4 10 10.5V42h-6V33c0-4-1.8-6-5.2-6-4 0-6.8 2.8-6.8 7V42z' fill='white'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #F1F1F1;
+      --surface: #FFFFFF;
+      --card-surface: #F3F4F4;
+      --surface-raised: #F8F8F8;
+      --field: #FFFFFF;
+      --field-soft: #FAFAFA;
+      --ink: #171717;
+      --black: #111111;
+      --button-ink: #111111;
+      --button-text: #FFFFFF;
+      --secondary: #626262;
+      --muted: #858585;
+      --line: #DEDEDE;
+      --line-strong: #CFCFCF;
+      --focus: #111111;
+      --selection-bg: #111111;
+      --selection-text: #FFFFFF;
+      --danger: #555555;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #101010;
+      --surface: #1B1B1B;
+      --card-surface: #1B1B1B;
+      --surface-raised: #242424;
+      --field: #151515;
+      --field-soft: #202020;
+      --ink: #F4F4F4;
+      --black: #FFFFFF;
+      --button-ink: #F3F3F3;
+      --button-text: #111111;
+      --secondary: #B7B7B7;
+      --muted: #909090;
+      --line: #363636;
+      --line-strong: #505050;
+      --focus: #FFFFFF;
+      --selection-bg: #FFFFFF;
+      --selection-text: #111111;
+      --danger: #D0D0D0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: "Arial", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      transition: background-color 180ms ease, color 180ms ease;
+    }
+
+    ::selection { color: var(--selection-text); background: var(--selection-bg); }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .page-shell {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px clamp(20px, 5vw, 72px) 24px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 750;
+      letter-spacing: -1px;
+    }
+
+    .brand-mark {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3px;
+      padding: 6px;
+      border-radius: 9px;
+      background: var(--button-ink);
+    }
+
+    .brand-mark i {
+      display: block;
+      border-radius: 2px;
+      background: var(--button-text);
+    }
+
+    .brand-mark i:last-child { opacity: .45; }
+
+    .theme-button {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .theme-button:hover { background: var(--surface-raised); }
+    .theme-button:active { transform: translateY(1px); }
+    .theme-button svg { width: 15px; height: 15px; }
+
+    main {
+      flex: 1;
+      width: min(100%, 1040px);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 62px 0 72px;
+    }
+
+    .intro {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--secondary);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(27px, 4vw, 43px);
+      line-height: 1.06;
+      letter-spacing: -1.8px;
+      font-weight: 750;
+    }
+
+    .intro p {
+      margin: 12px 0 0;
+      color: var(--secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .counter-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 35px;
+    }
+
+    .count {
+      width: max-content;
+      max-width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--ink);
+      font-size: min(clamp(108px, 23vw, 270px), calc((100vw - 48px) / (var(--digit-count, 1) * .69)));
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1;
+      font-variant-numeric: tabular-nums lining-nums;
+      text-align: center;
+      transition: color 180ms ease;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .digit-window {
+      position: relative;
+      display: block;
+      width: .72em;
+      min-width: .72em;
+      height: 1em;
+      flex: 0 0 .72em;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .digit-window + .digit-window { margin-left: -.05em; }
+
+    /* Subtle edge-only glass blur: short, feathered overlays soften the
+       entering/leaving edges without washing across the center of each digit. */
+    .digit-window::before,
+    .digit-window::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      height: 9%;
+      pointer-events: none;
+      opacity: .10;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+
+    .digit-window::before {
+      top: 0;
+      background: linear-gradient(to bottom, var(--page) 0%, transparent 100%);
+    }
+
+    .digit-window::after {
+      bottom: 0;
+      background: linear-gradient(to top, var(--page) 0%, transparent 100%);
+    }
+
+    .digit-strip {
+      display: flex;
+      flex-direction: column;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+      transition: transform 680ms cubic-bezier(.16, 1, .3, 1), filter 220ms ease-out;
+      will-change: transform, filter;
+    }
+
+    .digit-strip.is-moving { filter: blur(1.15px); }
+
+    .digit-cell {
+      display: block;
+      width: 100%;
+      height: 1em;
+      line-height: 1em;
+      flex: 0 0 1em;
+      text-align: center;
+    }
+
+    .count-spacer {
+      width: .12em;
+      flex: 0 0 .12em;
+    }
+
+    .count-caption {
+      margin-top: 18px;
+      color: var(--secondary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .19em;
+      text-transform: uppercase;
+    }
+
+    .paste-zone {
+      position: relative;
+      width: min(100%, 560px);
+      min-height: 144px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 25px 22px;
+      border: 1.5px dashed var(--line-strong);
+      border-radius: 18px;
+      background: var(--surface);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+    }
+
+    .paste-zone:hover, .paste-zone.is-over {
+      border-color: var(--ink);
+      background: var(--surface-raised);
+    }
+
+    .paste-zone.is-over { transform: scale(1.01); }
+
+    .paste-icon {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+    }
+
+    .paste-icon svg { width: 25px; height: 25px; }
+
+    .paste-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing: -.25px;
+    }
+
+    .paste-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .paste-hint kbd {
+      padding: 3px 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      color: var(--secondary);
+      font: inherit;
+      font-size: 10px;
+    }
+
+    .file-input { display: none; }
+
+    .reset-button {
+      display: block;
+      min-width: 112px;
+      min-height: 42px;
+      margin: 14px auto 0;
+      padding: 0 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .reset-button:hover:not(:disabled) { background: var(--surface-raised); }
+    .reset-button:active:not(:disabled) { transform: translateY(1px); }
+    .reset-button:disabled { opacity: .4; cursor: not-allowed; }
+
+    button:focus-visible, .paste-zone:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .page-shell { padding: 19px 18px 18px; }
+      main { padding: 54px 0 58px; }
+      .intro { margin-bottom: 35px; }
+      .intro p { max-width: 270px; font-size: 13px; }
+      .counter-wrap { margin-bottom: 39px; }
+      .count { font-size: min(clamp(100px, 28vw, 170px), calc((100vw - 48px) / (var(--digit-count, 1) * .69))); }
+      .paste-zone { min-height: 136px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Nomdiare home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>Nomdiare</span>
+      </a>
+      <button class="theme-button" id="themeButton" type="button" aria-label="Switch to dark theme" title="Switch theme">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
+        </svg>
+        <span id="themeLabel">Light</span>
+      </button>
+    </header>
+
+    <main id="top">
+      <section class="counter-wrap" aria-label="Image count">
+        <output class="count" id="count" aria-live="polite" aria-atomic="true">0</output>
+        <div class="count-caption">Images counted</div>
+      </section>
+
+      <section class="input-area" aria-label="Add images">
+        <div class="paste-zone" id="pasteZone" role="button" tabindex="0" aria-label="Paste an image or choose image files">
+          <span class="paste-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="3"></rect><circle cx="9" cy="9" r="1.5"></circle><path d="m20 15-4.5-4.5L7 19"></path>
+            </svg>
+          </span>
+          <p class="paste-title">Paste an image here</p>
+          <p class="paste-hint">Press <kbd>Ctrl</kbd> + <kbd>V</kbd> or drop an image</p>
+        </div>
+        <input class="file-input" id="fileInput" type="file" accept="image/*" multiple aria-label="Choose image files" />
+        <button class="reset-button" id="resetButton" type="button" disabled>Reset</button>
+      </section>
+    </main>
+
+  </div>
+
+  <script>
+    (() => {
+      const countOutput = document.getElementById('count');
+      const pasteZone = document.getElementById('pasteZone');
+      const fileInput = document.getElementById('fileInput');
+      const resetButton = document.getElementById('resetButton');
+      const themeButton = document.getElementById('themeButton');
+      const themeLabel = document.getElementById('themeLabel');
+      const themeIcon = document.getElementById('themeIcon');
+
+      const COUNT_KEY = 'nomdiare-image-count';
+      const THEME_KEY = 'nomdiare-theme';
+      const DIGIT_CELLS = 200;
+      const DIGIT_BASE = 80;
+      const RECENTER_LIMIT = 170;
+      const RECENTER_OFFSET = 100;
+      const ROLL_DURATION = 680;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      function readCount() {
+        try {
+          const value = Number.parseInt(localStorage.getItem(COUNT_KEY) || '0', 10);
+          return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+        } catch (_) {
+          return 0;
+        }
+      }
+
+      let count = readCount();
+      let displayedCount = count;
+      let digitColumns = [];
+      let animationQueue = Promise.resolve();
+      let animationEpoch = 0;
+
+      function saveCount() {
+        try {
+          localStorage.setItem(COUNT_KEY, String(count));
+        } catch (_) {
+          // Keep the live counter usable when storage is unavailable.
+        }
+      }
+
+      function makeDigitColumn(digit) {
+        const windowEl = document.createElement('span');
+        windowEl.className = 'digit-window';
+        windowEl.setAttribute('aria-hidden', 'true');
+
+        const strip = document.createElement('span');
+        strip.className = 'digit-strip';
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < DIGIT_CELLS; i += 1) {
+          const cell = document.createElement('span');
+          cell.className = 'digit-cell';
+          cell.textContent = String(i % 10);
+          fragment.appendChild(cell);
+        }
+        strip.appendChild(fragment);
+        windowEl.appendChild(strip);
+
+        const start = DIGIT_BASE + digit;
+        strip.style.transition = 'none';
+        strip.style.transform = `translate3d(0, -${start}em, 0)`;
+        return { element: windowEl, strip, index: start };
+      }
+
+      function setColumnPosition(column, index, animate = true) {
+        if (!animate) column.strip.style.transition = 'none';
+        column.strip.style.transform = `translate3d(0, -${index}em, 0)`;
+        column.index = index;
+        if (!animate) {
+          requestAnimationFrame(() => {
+            column.strip.style.transition = '';
+          });
+        }
+      }
+
+      function rollColumnToDigit(column, targetDigit) {
+        // Rebase by ten full digit cycles before the strip reaches its end.
+        // Removing 100 rows preserves the visible digit exactly.
+        if (column.index >= RECENTER_LIMIT) {
+          column.index -= RECENTER_OFFSET;
+          column.strip.style.transition = 'none';
+          column.strip.style.transform = `translate3d(0, -${column.index}em, 0)`;
+          void column.strip.offsetHeight;
+          column.strip.style.transition = '';
+        }
+
+        const currentDigit = ((column.index % 10) + 10) % 10;
+        const steps = (targetDigit - currentDigit + 10) % 10;
+        if (!steps) return;
+
+        // Each place rolls upward to its final digit in one continuous motion.
+        // This keeps multi-image additions quick while retaining the odometer feel.
+        column.strip.classList.add('is-moving');
+        setColumnPosition(column, column.index + steps, true);
+        window.setTimeout(() => column.strip.classList.remove('is-moving'), ROLL_DURATION - 80);
+      }
+
+      function updateCounterAccessibility() {
+        countOutput.setAttribute('aria-label', `${displayedCount} images counted`);
+        countOutput.style.setProperty('--digit-count', String(String(displayedCount).length));
+      }
+
+      function renderInitialCount() {
+        countOutput.replaceChildren();
+        digitColumns = [];
+        const digits = String(displayedCount).split('');
+        digits.forEach(char => {
+          const column = makeDigitColumn(Number(char));
+          digitColumns.push(column);
+          countOutput.appendChild(column.element);
+          requestAnimationFrame(() => {
+            column.strip.style.transition = '';
+          });
+        });
+        updateCounterAccessibility();
+        resetButton.disabled = displayedCount === 0;
+      }
+
+      function renderNextCount(nextCount) {
+        const nextDigits = String(nextCount).split('');
+        const addedColumns = nextDigits.length - digitColumns.length;
+        const newColumns = [];
+
+        if (addedColumns > 0) {
+          for (let i = 0; i < addedColumns; i += 1) {
+            const column = makeDigitColumn(0);
+            // New places appear on zero before joining the upward roll.
+            column.index = DIGIT_BASE;
+            column.strip.style.transition = 'none';
+            column.strip.style.transform = `translate3d(0, -${DIGIT_BASE}em, 0)`;
+            newColumns.push(column);
+          }
+          newColumns.reverse().forEach(column => {
+            countOutput.insertBefore(column.element, countOutput.firstChild);
+          });
+          digitColumns = newColumns.concat(digitColumns);
+        }
+
+        const newColumnSet = new Set(newColumns);
+        nextDigits.forEach((char, index) => {
+          const column = digitColumns[index];
+          const targetDigit = Number(char);
+          if (newColumnSet.has(column)) {
+            // Give the newly inserted zero one paint before it starts rolling.
+            requestAnimationFrame(() => {
+              column.strip.style.transition = '';
+              requestAnimationFrame(() => rollColumnToDigit(column, targetDigit));
+            });
+            return;
+          }
+          rollColumnToDigit(column, targetDigit);
+        });
+
+        displayedCount = nextCount;
+        updateCounterAccessibility();
+        resetButton.disabled = displayedCount === 0;
+      }
+
+      function animateTo(target) {
+        const epoch = animationEpoch;
+        animationQueue = animationQueue.then(async () => {
+          if (epoch !== animationEpoch || displayedCount >= target) return;
+          if (reduceMotion.matches) {
+            displayedCount = target;
+            renderInitialCount();
+            return;
+          }
+          // Roll each changed place directly to the new count, rather than
+          // replaying every intermediate integer when several images are added.
+          renderNextCount(target);
+          await new Promise(resolve => setTimeout(resolve, ROLL_DURATION));
+        }).catch(() => {
+          // A rendering hiccup should not leave the counter permanently stuck.
+          if (epoch === animationEpoch) {
+            displayedCount = count;
+            renderInitialCount();
+          }
+        });
+      }
+
+      function addImageCount(amount) {
+        const validAmount = Number.isSafeInteger(amount) && amount > 0 ? amount : 0;
+        if (!validAmount) return;
+        count = Math.min(Number.MAX_SAFE_INTEGER, count + validAmount);
+        saveCount();
+        animateTo(count);
+      }
+
+      function getClipboardImageFiles(clipboardData) {
+        if (!clipboardData) return [];
+        const fromItems = Array.from(clipboardData.items || [])
+          .filter(item => item.kind === 'file' && item.type && item.type.toLowerCase().startsWith('image/'))
+          .map(item => item.getAsFile())
+          .filter(Boolean);
+        if (fromItems.length) return fromItems;
+        return Array.from(clipboardData.files || [])
+          .filter(file => file.type && file.type.toLowerCase().startsWith('image/'));
+      }
+
+      function getClipboardHtmlImageCount(clipboardData) {
+        try {
+          const html = clipboardData && clipboardData.getData('text/html');
+          if (!html) return 0;
+          const parsed = new DOMParser().parseFromString(html, 'text/html');
+          return parsed.querySelectorAll('img').length;
+        } catch (_) {
+          return 0;
+        }
+      }
+
+      async function visualFingerprint(file) {
+        if (typeof createImageBitmap !== 'function') return null;
+        let bitmap;
+        try {
+          bitmap = await createImageBitmap(file);
+          const canvas = document.createElement('canvas');
+          canvas.width = 64;
+          canvas.height = 64;
+          const context = canvas.getContext('2d', { willReadFrequently: true });
+          if (!context) return null;
+          context.clearRect(0, 0, 64, 64);
+          context.drawImage(bitmap, 0, 0, 64, 64);
+          const pixels = context.getImageData(0, 0, 64, 64).data;
+          // Small deterministic pixel hash collapses alternate clipboard encodings
+          // of the same image without relying on file names or MIME types.
+          let hash = 2166136261;
+          for (let i = 0; i < pixels.length; i += 1) {
+            // Quantize tiny color differences introduced by alternate encodings.
+            hash ^= pixels[i] >>> 4;
+            hash = Math.imul(hash, 16777619);
+          }
+          return String(hash >>> 0);
+        } catch (_) {
+          return null;
+        } finally {
+          if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+        }
+      }
+
+      async function countUniqueClipboardImages(files) {
+        const fingerprints = new Set();
+        let unhashable = 0;
+        for (const file of files) {
+          const fingerprint = await visualFingerprint(file);
+          if (fingerprint) fingerprints.add(fingerprint);
+          else unhashable += 1;
+        }
+        return fingerprints.size + unhashable;
+      }
+
+      window.addEventListener('paste', async event => {
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return;
+
+        const htmlImageCount = getClipboardHtmlImageCount(clipboardData);
+        const imageFiles = getClipboardImageFiles(clipboardData);
+        if (!htmlImageCount && !imageFiles.length) return;
+
+        event.preventDefault();
+        if (htmlImageCount > 0) {
+          // HTML preserves the actual number of selected image elements. Clipboard
+          // file items can also include alternate encodings for those same images.
+          addImageCount(htmlImageCount);
+        } else {
+          const uniqueCount = await countUniqueClipboardImages(imageFiles);
+          addImageCount(uniqueCount || imageFiles.length);
+        }
+      });
+
+      pasteZone.addEventListener('click', () => fileInput.click());
+      pasteZone.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        addImageCount(Array.from(fileInput.files || []).filter(file => file.type && file.type.toLowerCase().startsWith('image/')).length);
+        fileInput.value = '';
+      });
+
+      ['dragenter', 'dragover'].forEach(type => pasteZone.addEventListener(type, event => {
+        event.preventDefault();
+        pasteZone.classList.add('is-over');
+      }));
+
+      ['dragleave', 'drop'].forEach(type => pasteZone.addEventListener(type, event => {
+        event.preventDefault();
+        pasteZone.classList.remove('is-over');
+      }));
+
+      pasteZone.addEventListener('drop', event => {
+        const files = Array.from(event.dataTransfer && event.dataTransfer.files || [])
+          .filter(file => file.type && file.type.toLowerCase().startsWith('image/'));
+        addImageCount(files.length);
+      });
+
+      resetButton.addEventListener('click', () => {
+        animationEpoch += 1;
+        animationQueue = Promise.resolve();
+        count = 0;
+        displayedCount = 0;
+        saveCount();
+        renderInitialCount();
+      });
+
+      const sunIcon = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>';
+      const moonIcon = '<path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.6 8.6 0 1 0 20.2 15.3Z"></path>';
+
+      function applyTheme(theme, persist = false) {
+        const dark = theme === 'dark';
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        themeLabel.textContent = dark ? 'Dark' : 'Light';
+        themeIcon.innerHTML = dark ? moonIcon : sunIcon;
+        themeButton.setAttribute('aria-label', `Switch to ${dark ? 'light' : 'dark'} theme`);
+        themeButton.title = `Switch to ${dark ? 'light' : 'dark'} theme`;
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#101010' : '#F1F1F1');
+        if (persist) {
+          try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (_) { /* Theme still changes for this session. */ }
+        }
+      }
+
+      let initialTheme = 'light';
+      try { initialTheme = localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; } catch (_) { /* Use light theme. */ }
+      applyTheme(initialTheme);
+      themeButton.addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme, true);
+      });
+
+      renderInitialCount();
+    })();
+  </script>
+</body>
+</html>

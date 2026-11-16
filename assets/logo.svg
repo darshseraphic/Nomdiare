@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="157" viewBox="0 0 156 157" role="img" aria-labelledby="title desc">
+  <title id="title">Nomdiare logo</title>
+  <desc id="desc">A dark rounded square containing four smaller rounded squares, three white and one gray.</desc>
+  <rect x="0" y="0" width="156" height="157" rx="45" fill="#111111"/>
+  <rect x="32" y="28" width="40" height="40" rx="11" fill="#FFFFFF"/>
+  <rect x="84" y="28" width="40" height="40" rx="11" fill="#FFFFFF"/>
+  <rect x="32" y="84" width="40" height="41" rx="11" fill="#FFFFFF"/>
+  <rect x="84" y="84" width="40" height="41" rx="11" fill="#808080"/>
+</svg>
